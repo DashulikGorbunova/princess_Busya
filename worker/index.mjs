@@ -7,7 +7,7 @@ const common = {
   'X-Content-Type-Options': 'nosniff',
   'X-Robots-Tag': 'noindex, nofollow',
   'Referrer-Policy': 'no-referrer',
-  'Content-Security-Policy': "default-src 'self'; img-src 'self' blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+  'Content-Security-Policy': "default-src 'self'; img-src 'self' blob: data:; style-src 'self' 'unsafe-inline'; script-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
 };
 
 function respond(body, status = 200, headers = {}) {
@@ -123,6 +123,7 @@ export default {
       if (!role) return json({error:'Войди в дневник.'}, 401);
       if (method === 'GET' && pathname === '/api/session') return json({role, today:today()});
       if (!env.BUCKET) return json({error:'Хранилище фотографий недоступно.'}, 503);
+      if (pathname === '/api/diary' || pathname.startsWith('/api/diary/')) return await diaryRequest(request, env.BUCKET, pathname, role, json);
       if (method === 'GET' && pathname === '/api/photos') return json({photos:await photos(env.BUCKET)});
       if (method === 'POST' && pathname === '/api/photos') {
         return role === 'writer' ? await upload(request, env.BUCKET, url) : json({error:'Этот пароль открывает просмотр.'}, 403);
